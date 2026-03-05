@@ -28,9 +28,9 @@ baseline_rate = st.number_input(
 minimum_improvement = st.number_input(
     "Minimum detectable effect (%)",
     min_value=0.1,
-    max_value=200.0,
-    value=20.0,
-    step=0.1,
+    max_value=50.0,
+    value=5.0,
+    step=1.0,
     help="The minimum relative improvement you want to detect. Example: if you're at 5% and enter 20%, you're testing whether you can reach 6% (which is 20% better than 5%). Smaller improvements require much larger sample sizes."
 )
 
@@ -75,12 +75,12 @@ with col2:
     )
 
 # Optional: known daily volume for Control group
-known_daily_control = st.number_input(
-    "Known daily Control visitors (optional)",
+known_daily_volume = st.number_input(
+    "Known daily visitors entering the test (optional)",
     min_value=0,
     value=0,
     step=100,
-    help="Optional: if you know how many unique visitors the Control group receives per day (for example, enter 20000), the app will use that to compute a more accurate time-to-run. Leave 0 to use default 1,000/10,000 estimates."
+    help="Optional: The number of people that could enter the test per day, based on historical data. The app will calculate a more accurate time-to-run. Leave 0 to use default 1,000/10,000 estimates."
 )
 
 st.divider()
@@ -175,13 +175,16 @@ if st.button("Calculate Sample Size", type="primary", use_container_width=True):
         - With 10,000 visitors/day: approximately **{days_10k} days**
     """)
 
-    # If user provided a known daily Control volume, show a more accurate estimate
-    if known_daily_control and known_daily_control > 0:
-        # Estimate total daily visitors based on control ratio
-        total_daily_visitors = known_daily_control * (100.0 / control_ratio)
-        days_total_known = math.ceil(total_needed / total_daily_visitors)
-        days_control_known = math.ceil(control_sample / known_daily_control)
+    # If user provided a known daily total volume entering the test, show a more accurate estimate
+    if known_daily_volume and known_daily_volume > 0:
+        # known_daily_volume is the total visitors entering the test per day
+        control_daily = known_daily_volume * (control_ratio / 100.0)
+        days_total_known = math.ceil(total_needed / known_daily_volume)
+        days_control_known = math.ceil(control_sample / control_daily) if control_daily > 0 else None
 
-        st.info(f"With your Control receiving {known_daily_control:,} visitors/day: expect ~{days_control_known} days for Control and ~{days_total_known} days total for the experiment.")
+        if days_control_known:
+            st.info(f"With ~{known_daily_volume:,} total visitors/day: expect ~{days_total_known} days total (Control ~{days_control_known} days at {control_daily:,.0f} control visitors/day).")
+        else:
+            st.info(f"With ~{known_daily_volume:,} total visitors/day: expect ~{days_total_known} days total")
     
     # (Code preview removed from UI for privacy/cleaner UX)
