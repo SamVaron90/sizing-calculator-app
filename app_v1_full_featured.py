@@ -175,16 +175,9 @@ if st.button("Calculate Sample Size", type="primary", use_container_width=True):
         - With 10,000 visitors/day: approximately **{days_10k} days**
     """)
 
-    # If user provided a known daily total volume entering the test, show a more accurate estimate
+    # If user provided a known daily total volume entering the test, show total days only
     if known_daily_volume and known_daily_volume > 0:
-        # known_daily_volume is the total visitors entering the test per day
-        control_daily = known_daily_volume * (control_ratio / 100.0)
         days_total_known = math.ceil(total_needed / known_daily_volume)
-        days_control_known = math.ceil(control_sample / control_daily) if control_daily > 0 else None
-
-        if days_control_known:
-            st.info(f"With ~{known_daily_volume:,} total visitors/day: expect ~{days_total_known} days total (Control ~{days_control_known} days at {control_daily:,.0f} control visitors/day).")
-        else:
-            st.info(f"With ~{known_daily_volume:,} total visitors/day: expect ~{days_total_known} days total")
+        st.info(f"With ~{known_daily_volume:,} total visitors/day: expect ~{days_total_known} days to run the experiment.")
     
     # (Code preview removed from UI for privacy/cleaner UX)
